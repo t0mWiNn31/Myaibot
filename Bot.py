@@ -3,8 +3,8 @@ import os
 from groq import Groq
 
 # Render ရဲ့ Environment Variables ထဲမှာ ထည့်ပေးရမယ့် Key တွေ
-TOKEN = os.environ.get('7879791367:AAFNRZBQyLe7P0aVRt_MbpNXFvo0PHoxGzE')
-GROQ_API_KEY = os.environ.get('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')
+TOKEN = os.environ.get('BOT_TOKEN')
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
 
 client = Groq(api_key=GROQ_API_KEY)
 bot = telebot.TeleBot(TOKEN)
