@@ -1,33 +1,34 @@
-import telebot
 import os
-from groq import Groq
+import telebot
+import google.generativeai as genai
 
-# Render ရဲ့ Environment Variables ထဲမှာ ထည့်ပေးရမယ့် Key တွေ
-TOKEN = os.environ.get('BOT_TOKEN')
-GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
+# Render ရဲ့ Environment Variables ထဲကနေ Key တွေကို ဆွဲယူမယ်
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
+GEMINI_KEY = os.environ.get('GEMINI_API_KEY')
 
-client = Groq(api_key=GROQ_API_KEY)
-bot = telebot.TeleBot(TOKEN)
+# Gemini API ကို Setup လုပ်ခြင်း
+genai.configure(api_key=GEMINI_KEY)
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, "ဟိုင်း ကိုကို! Groq AI Bot အဆင်သင့်ပါပဲ။ ဘာကူညီရမလဲ?")
+bot = telebot.TeleBot(BOT_TOKEN)
 
 @bot.message_handler(func=lambda message: True)
-def get_ai_response(message):
+def chat_with_gemini(message):
     try:
-        # Groq API ဆီကနေ Llama 3 နဲ့ အဖြေတောင်းတာ
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            # နိုးလာမှ ဒီလိုလေး ပြင်ကြည့်မယ်
-messages=[{"role": "system", "content": "You are a helpful assistant. Please reply in natural, colloquial Myanmar language (Burmese)."}],
-            messages=[{"role": "user", "content": message.text}],
-        )
+        # AI ကို မြန်မာလို ပိုပီပြင်အောင် ညွှန်ကြားချက် ထည့်ထားပါတယ်
+        prompt = f"You are a helpful assistant. Please reply in natural, colloquial Myanmar language (Burmese). Be friendly and avoid robotic sounding formal words. Question: {message.text}"
         
-        ai_reply = completion.choices[0].message.content
-        bot.reply_to(message, ai_reply)
+        response = model.generate_content(prompt)
         
+        # စာပြန်တဲ့နေရာမှာ စာသားပါရင် ပြန်မယ်
+        if response.text:
+            bot.reply_to(message, response.text)
+        else:
+            bot.reply_to(message, "နားမလည်လို့ပါ ကိုကို။ နောက်တစ်ခါ ပြန်ပြောပေးမလား?")
+            
     except Exception as e:
-        bot.reply_to(message, f"Error: {str(e)}")
+        print(f"Error: {e}")
+        bot.reply_to(message, "ခဏလေးနော် ကိုကို... Gemini Key ဒါမှမဟုတ် Network ကြောင့် Error တက်သွားလို့ပါ။")
 
-bot.infinity_polling()
+if name == "main":
+    bot.infinity_polling()
