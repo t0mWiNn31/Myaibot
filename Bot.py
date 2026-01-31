@@ -18,7 +18,7 @@ def get_ai_response(message):
     try:
         # Groq API ဆီကနေ Llama 3 နဲ့ အဖြေတောင်းတာ
         completion = client.chat.completions.create(
-            model="llama3-8b-8192",
+            model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": message.text}],
         )
         
