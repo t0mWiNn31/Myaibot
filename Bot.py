@@ -1,0 +1,31 @@
+import telebot
+import os
+from groq import Groq
+
+# Render ရဲ့ Environment Variables ထဲမှာ ထည့်ပေးရမယ့် Key တွေ
+TOKEN = os.environ.get('7879791367:AAFNRZBQyLe7P0aVRt_MbpNXFvo0PHoxGzE')
+GROQ_API_KEY = os.environ.get('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')
+
+client = Groq(api_key=GROQ_API_KEY)
+bot = telebot.TeleBot(TOKEN)
+
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "ဟိုင်း ကိုကို! Groq AI Bot အဆင်သင့်ပါပဲ။ ဘာကူညီရမလဲ?")
+
+@bot.message_handler(func=lambda message: True)
+def get_ai_response(message):
+    try:
+        # Groq API ဆီကနေ Llama 3 နဲ့ အဖြေတောင်းတာ
+        completion = client.chat.completions.create(
+            model="llama3-8b-8192",
+            messages=[{"role": "user", "content": message.text}],
+        )
+        
+        ai_reply = completion.choices[0].message.content
+        bot.reply_to(message, ai_reply)
+        
+    except Exception as e:
+        bot.reply_to(message, f"Error: {str(e)}")
+
+bot.infinity_polling()
